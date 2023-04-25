@@ -24,6 +24,7 @@ import (
 	"net/http/httptrace"
 	"net/url"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -235,10 +236,14 @@ func (b *Work) runWorkers() {
 	var wg sync.WaitGroup
 	wg.Add(b.C)
 
+	hostNoPort := b.Request.Host
+	if i := strings.LastIndex(hostNoPort, ":"); i > strings.LastIndex(hostNoPort, "]") {
+		hostNoPort = hostNoPort[:i]
+	}
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
-			ServerName:         b.Request.Host,
+			ServerName:         hostNoPort,
 		},
 		MaxIdleConnsPerHost: min(b.C, maxIdleConn),
 		DisableCompression:  b.DisableCompression,
